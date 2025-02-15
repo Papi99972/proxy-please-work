@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(
   "/proxy",
   createProxyMiddleware({
-    target: "https://example.com", // Default target (overridden per request)
+    target: "", // Set empty target, we will dynamically change it
     changeOrigin: true,
     pathRewrite: {
       "^/proxy": "",  // This will strip `/proxy` from the URL path
@@ -36,8 +36,8 @@ app.use(
       res.setHeader('Access-Control-Allow-Origin', 'https://w-pv-26.vercel.app');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Cache-Control', 'no-cache');  // Optional: Prevent caching
     },
+    logLevel: 'debug', // Log for debugging proxy requests
   })
 );
 
