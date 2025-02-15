@@ -1,45 +1,34 @@
 const express = require("express");
-const cors = require("cors");
-const { createProxyMiddleware } = require("http-proxy-middleware");
+const axios = require("axios"); // Use axios to fetch content
 const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS for all origins or restrict it to specific origins
-app.use(cors({
-  origin: 'https://w-pv-26.vercel.app', // Allow only the frontend domain to make requests
-  methods: ['GET', 'POST'],  // Allow GET and POST requests
-  allowedHeaders: ['Content-Type'], // Allow specific headers
-}));
-
 // Middleware to serve static files (e.g., frontend assets)
 app.use(express.static(path.join(__dirname, "public")));
 
-// Proxy Middleware to handle requests
-app.use(
-  "/proxy",
-  createProxyMiddleware({
-    target: "", // Set empty target, we will dynamically change it
-    changeOrigin: true,
-    pathRewrite: {
-      "^/proxy": "",  // This will strip `/proxy` from the URL path
-    },
-    onProxyReq: (proxyReq, req, res) => {
-      const targetUrl = req.query.url;
-      if (targetUrl) {
-        proxyReq.path = targetUrl;  // Override the request path with the provided URL
-      }
-    },
-    onProxyRes: (proxyRes, req, res) => {
-      // Ensure the response from the proxy contains the right CORS headers
-      res.setHeader('Access-Control-Allow-Origin', 'https://w-pv-26.vercel.app');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    },
-    logLevel: 'debug', // Log for debugging proxy requests
-  })
-);
+// Proxy to handle requests
+app.use("/proxy", async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) {
+    return res.status(400).send("No URL provided");
+  }
+
+  try {
+    // Fetch content from the target URL using axios
+    const response = await axios.get(decodeURIComponent(targetUrl), {
+      responseType: "text", // Ensure we get the raw content as text
+    });
+
+    // Send the fetched content back to the frontend
+    res.setHeader("Content-Type", "text/html");  // Set the correct content type
+    res.send(response.data);  // Send the proxied content
+  } catch (error) {
+    console.error("Error fetching the target URL:", error);
+    res.status(500).send("Error fetching content from the target URL");
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Custom Proxy running on port ${PORT}`);
