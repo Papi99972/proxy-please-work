@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require("cors");  // Import CORS middleware
+const cors = require("cors");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const path = require("path");
 
@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // Enable CORS for all origins or restrict it to specific origins
 app.use(cors({
-  origin: 'https://w-pv-26.vercel.app',  // Allow only the frontend domain to make requests
+  origin: 'https://w-pv-26.vercel.app', // Allow only the frontend domain to make requests
   methods: ['GET', 'POST'],  // Allow GET and POST requests
   allowedHeaders: ['Content-Type'], // Allow specific headers
 }));
@@ -33,9 +33,10 @@ app.use(
     },
     onProxyRes: (proxyRes, req, res) => {
       // Ensure the response from the proxy contains the right CORS headers
-      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Origin', 'https://w-pv-26.vercel.app');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Cache-Control', 'no-cache');  // Optional: Prevent caching
     },
   })
 );
